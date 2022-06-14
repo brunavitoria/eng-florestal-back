@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5434:5432'
+    volumes: 
+      - ../db:/var/lib/postgresql/data
+    networks:
+      - eng-florestal-network
+
+  service-node:
+    build: 
+      context: ..
+      dockerfile: ./infra/Dockerfile.node
+    container_name: service-node
+    command: npm start
+    ports:
+      - "3001:3000"
+    volumes:
+      - ../service-node/.:/usr/app
+    depends_on:
+      - db
+    networks:
+      - eng-florestal-network
+
+networks:
+  eng-florestal-network:
+    driver: bridge
