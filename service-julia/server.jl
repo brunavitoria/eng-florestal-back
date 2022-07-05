@@ -1,16 +1,10 @@
 using Genie, Genie.Router
 using Genie.Renderer, Genie.Renderer.Html, Genie.Renderer.Json
 
-route("/hello.html") do
-  html("Hello World")
-end
+include("./controllers/amostragem_simples.jl"); 
+using .AmostragemSimplesController;
 
-route("/hello.json") do
-  json("Hello World")
-end
 
-route("/hello.txt") do
-   respond("Hello World", :text)
-end
+route("/amostragem-simples", AmostragemSimplesController.process)
 
 up(8001, async = false)
