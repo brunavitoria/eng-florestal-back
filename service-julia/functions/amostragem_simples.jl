@@ -4,10 +4,10 @@
 using DataFrames, Statistics, Distributions, CSV, XLSX #Habilitar pacotes
 
 #Função AAS: amostragem aleatória simples
-function AAS(Unidades, Volume) #Determina a função
-    Volume = (Conversor.*Dados.Volume)
-    Unidades = Dados.Unidades
-    ASS= DataFrame(Unidades = Unidades, Volume= Volume)
+function AAS(Unidades, Volume, N, alpha, Conversor, EAR, Área, output_file) #Determina a função
+    Volume = (Conversor.*Volume)
+    # Unidades = Dados.Unidades
+    AAS= DataFrame(Unidades = Unidades, Volume= Volume)
     mean(Volume) #Média
     (length(Unidades)) #Número de unidades
     var(Volume) #Variância 
@@ -32,27 +32,28 @@ function AAS(Unidades, Volume) #Determina a função
         round(int_finita)
     end 
     (var(Volume)/length(Unidades))*(1-(length(Unidades)/N)) #Variância média
-    (sqrt((var(Volume)))/sqrt(Complex(length(Unidades))))*sqrt(Complex((1-(length(Unidades)/N)))) #Erro padrão
-    ((sqrt(Complex(var(Volume)))/sqrt(Complex(length(Unidades))))*sqrt(Complex((1-(length(Unidades)/N))))/mean(Volume))*100 #Erro padrão relativo
+    (sqrt((var(Volume)))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))) #Erro padrão
+    ((sqrt(var(Volume)))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))/mean(Volume)*100 #Erro padrão relativo
     ((sqrt(var(Volume))/mean(Volume))*100) #Coeficiente de variação
     (((((sqrt(var(Volume))/mean(Volume))*100))^2)/(length(Unidades)))*(1-(length(Unidades)/N)) #Variância média relativa
     #Erro de amostragem
-    (t*(sqrt(Complex(var(Volume)))/sqrt(Complex(length(Unidades))))*sqrt(Complex((1-(length(Unidades)/N))))) #Absoluto
-    ((t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))))/mean(Volume))*100 #Relativo
+    (t*(sqrt(var(Volume)))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))) #Absoluto
+    ((t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))))/mean(Volume)*100 #Relativo
     #Limite do intervalo de confiança para média 
-    (mean(Volume)-(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))))) #Inferior
-    (mean(Volume)+(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))))) #Superior
+    (mean(Volume)-(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))))) #Inferior
+    (mean(Volume)+(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))))) #Superior
     ((N*mean(Volume))/Conversor) #Total da população
     #Limite do intervalo de confiança para o total   
-    ((N*mean(Volume))-N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N))))))/Conversor #Inferior
-    ((N*mean(Volume))+N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((Complex(1-(length(Unidades)/N)))))) #Inferior
-    mean(Volume)-(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N))))) #Estimativa mínima de confiança
+    ((N*mean(Volume))-N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))))/Conversor #Inferior
+    ((N*mean(Volume))+N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))))) #Inferior
+    mean(Volume)-(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))) #Estimativa mínima de confiança
     #Tabela com os resultados
     if ((t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))))/mean(Volume)*100 > EAR
         Observação = "Diante do exposto, conclui-se que os resultados obtidos na amostragem não satisfazem as exigências de
         precisão estabelecidas para o inventário, ou seja, um erro de amostragem máximo de ±10% da média  para confiabilidade designada. 
         O erro estimado foi maior que o limite fixado, sendo recomendado incluir mais unidades amostrais no inventário."
         println(Observação)
+
         elseif ((t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))))/mean(Volume))*100 ≤ EAR
         Observação  = "Diante do exposto, conclui-se que os resultados obtidos na amostragem satisfazem as exigências de
         precisão estabelecidas para o inventário, ou seja, um erro de amostragem máximo de ±10% da média para confiabilidade designada. 
@@ -64,19 +65,19 @@ function AAS(Unidades, Volume) #Determina a função
     "Limite superior do intervalo de confiança para o total (m³)", "Erro padrão relativo (%)", "Área da população (ha)", "Erro da amostragem absoluto (m³/ha)", "Erro padrão (m³/ha)", "Desvio padrão (m³/ha)", 
     "Variância (m³/ha)²", "Variância da média (m³/ha)²", "Variância da média relativa (%)", "Coeficiente de variação (%)", "Limite de erro da amostragem requerido", "Estimativa mínima de confiança (m³/ha)",
     "Fração de amostragem", "Intensidade de amostragem", "População", "Número total de unidades amostrais da população", 
-    "Nível de significância (α)"], Valores=[mean(Volume), (mean(Volume)-(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))))), 
-    (mean(Volume)+(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))))), 
+    "Nível de significância (α)", "Observação"], Valores=[mean(Volume), (mean(Volume)-(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))))), 
+    (mean(Volume)+(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))))), 
     ((N*mean(Volume))/Conversor), 
-    ((N*mean(Volume))-N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N))))))/Conversor, 
-    ((N*mean(Volume))+N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))))),
-    ((t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))))/mean(Volume))*100, Área,
-    (t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N))))),
-    (sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt(Complex((1-(length(Unidades)/N)))), sqrt(var(Volume)),   
+    ((N*mean(Volume))-N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))))/Conversor, 
+    ((N*mean(Volume))+N*(t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))))),
+    ((t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))))/mean(Volume)*100, Área,
+    (t*(sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N)))),
+    (sqrt(var(Volume))/sqrt(length(Unidades)))*sqrt((1-(length(Unidades)/N))), sqrt(var(Volume)),   
     var(Volume), (var(Volume)/length(Unidades))*(1-(length(Unidades)/N)), 
     (((((sqrt(var(Volume))/mean(Volume))*100))^2)/(length(Unidades)))*(1-(length(Unidades)/N)), 
     ((sqrt(var(Volume))/mean(Volume))*100), (0.1*mean(Volume)), EAR, (1-(length(Unidades)/N)),
-    Intensidade, População, N, alpha]) #Tabela de resultados
-    XLSX.writetable(("F:/Version_09_07_21/iflorestal.jl/01.xlsx"), Dados=(collect(DataFrames.eachcol(ASS)), 
-    DataFrames.names(ASS)), Resultados=(collect(DataFrames.eachcol(Resultados)),
+    Intensidade, População, N, alpha, Observação]) #Tabela de resultados
+    XLSX.writetable(output_file, Dados=(collect(DataFrames.eachcol(AAS)), 
+    DataFrames.names(AAS)), Resultados=(collect(DataFrames.eachcol(Resultados)),
     DataFrames.names(Resultados))) #Exportar para o Excel
 end 
